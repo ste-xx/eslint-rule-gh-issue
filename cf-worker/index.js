@@ -1,17 +1,34 @@
-async function handleRequest(request) {
-  const issueUrls = await request.json();
+async function cacheFetch({reqFn, event}) {
+  const cache = caches.default
+  const cacheResponse = await cache.match(reqFn())
+  if(cacheResponse){
+    return cacheResponse;
+  }
+  const fetchResponse = await fetch(reqFn())
+  if (fetchResponse.ok) {
+    event.waitUntil(cache.put(reqFn(), fetchResponse.clone()))
+  }
+  return fetchResponse;
+}
 
-  const stateFromGithub = async (issue) => fetch(`https://api.github.com/repos/${issue}`, {
-      cf: {
-        cacheTtl: 86400,
-        cacheEverything: true,
-      },
-      method: 'GET',
-      headers: {
-        'user-agent': 'eslint-open-gh-issue-rule-agent',
-        "content-type": "application/json;charset=UTF-8"
-      }
-    })
+const createGHApiRequest = (issue) => new Request(`https://api.github.com/repos/${issue}`, {
+  cf: {
+    cacheTtl: 86400,
+    cacheEverything: true,
+  },
+  method: 'GET',
+  headers: {
+    'user-agent': 'eslint-open-gh-issue-rule-agent',
+    "content-type": "application/json;charset=UTF-8"
+  }
+});
+
+async function handleRequest(event) {
+  const issueUrls = await event.request.json();
+  const stateFromGithub = async (issue) => cacheFetch({
+    reqFn: () => createGHApiRequest(issue),
+    event
+  })
     .then(r => r.json())
     .then(({state}) => state)
 
@@ -25,6 +42,4 @@ async function handleRequest(request) {
   });
 }
 
-addEventListener("fetch", event => {
-  return event.respondWith(handleRequest(event.request))
-})
+addEventListener("fetch", event => event.respondWith(handleRequest(event)))
