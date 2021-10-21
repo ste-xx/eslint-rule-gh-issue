@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-gh-issue",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "triggers if a github issue is closed",
   "keywords": [
     "eslint",
