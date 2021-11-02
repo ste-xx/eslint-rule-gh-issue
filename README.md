@@ -1,6 +1,6 @@
 # eslint-plugin-gh-issue
 
-triggers if a github issue is closed
+Triggers if a github issue is closed
 
 ## Installation
 
@@ -34,13 +34,14 @@ Then configure the rules you want to use under the rules section.
 ```json
 {
     "rules": {
-        "gh-issue/rule-name": 2
+        "gh-issue/open-issue": 2
     }
 }
 ```
 
 ## Supported Rules
 
-* Fill in provided rules here
+Currently, there is only the open issue rule.
+
 
 
